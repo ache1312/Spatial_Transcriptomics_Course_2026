@@ -10,21 +10,50 @@ library(tidyverse)
 
 options(future.globals.maxSize = 1e10)
 
+#### Data download and setup ####
+
+# Create Data directory if it doesn't exist
+data_dir <- "../../Data"
+if (!dir.exists(data_dir)) {
+  dir.create(data_dir, recursive = TRUE)
+  cat("Created Data directory\n")
+}
+
+# Download and extract data if not already present
+zip_file <- file.path(data_dir, "visium_hd_data.zip")
+if (!file.exists(zip_file)) {
+  cat("Downloading Visium HD data...\n")
+  download.file(
+    url = "https://apps.cienciavida.org/single_cell/visium_hd_data.zip",
+    destfile = zip_file,
+    mode = "wb"
+  )
+  cat("Download complete!\n")
+}
+
+# Extract zip file if not already extracted
+crc5_dir <- file.path(data_dir, "GEO_CRC5_VHD")
+if (!dir.exists(crc5_dir)) {
+  cat("Extracting data...\n")
+  unzip(zip_file, exdir = data_dir)
+  cat("Extraction complete!\n")
+}
+
 #### Data loading ####
 
-crc5 <- Load10X_Spatial(data.dir = "/home/andres/ST_course/Oliveira_2025/GEO_CRC5_VHD/outs/",
+crc5 <- Load10X_Spatial(data.dir = file.path(data_dir, "GEO_CRC5_VHD/outs/"),
                         bin.size = 8) # Visium HD data of patient 5
 
 crc5$orig.ident <- "CRC5"
 Idents(crc5) <- "orig.ident"
 
-crc2 <- Load10X_Spatial(data.dir = "/home/andres/ST_course/Oliveira_2025/GEO_CRC2_VHD/outs/",
+crc2 <- Load10X_Spatial(data.dir = file.path(data_dir, "GEO_CRC2_VHD/outs/"),
                         bin.size = 8) # Visium HD data of patient 2
 
 crc2$orig.ident <- "CRC2"
 Idents(crc2) <- "orig.ident"
 
-load("/home/andres/ST_course/Oliveira_2025/crc_integrated.RData") # scRNA-seq atlas of patients 5 and 2
+load(file.path(data_dir, "crc_integrated.RData")) # scRNA-seq atlas of patients 5 and 2
 
 #### Data exploration and quality control ####
 
